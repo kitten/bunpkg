@@ -51,11 +51,16 @@ const handleGET = async (event: any) => {
 
 const serveNPMFile = async (request: Request) => {
   const url = parseUrl(request.url);
-  const pathname = url.pathname.slice(1);
+
+  let pathname = url.pathname.slice(1);
   if (!pathname || pathname === '/') {
     return new Response('Bunpkg', { status: 200 });
   } else if (pathname === 'favicon.ico') {
     return new Response('Not Found', { status: 404 });
+  } else if (!pathname.startsWith('n')) {
+    return new Response('Not Found', { status: 404 });
+  } else {
+    pathname = pathname.slice(2);
   }
 
   const parsed = pathname.match(pkgRe);
@@ -74,7 +79,7 @@ const serveNPMFile = async (request: Request) => {
         headers: {
          ...env.BASE_HEADERS,
           'cache-control': env.SHORT_CACHE_CONTROL,
-          location: `/${manifest._id}${rest}?meta`
+          location: `/n/${manifest._id}${rest}?meta`
         }
       });
     } else if (rest === '/package.json') {
@@ -120,7 +125,7 @@ const serveNPMFile = async (request: Request) => {
           'cache-control': selector !== manifest.version
             ? env.SHORT_CACHE_CONTROL
             : env.LONG_CACHE_CONTROL,
-          location: `/${target}`
+          location: `/n/${target}`
         }
       });
     } else if (asset.size > env.MAX_BYTE_SIZE) {
