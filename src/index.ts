@@ -14,7 +14,7 @@ addEventListener('fetch', (event: any) => {
   let response: Response;
   switch (event.request.method) {
     case 'GET':
-      return event.respondWith(serveNPMFile(event.request));
+      return event.respondWith(handleGET(event));
     case 'OPTIONS':
       response = new Response('', {
         status: 200,
@@ -32,6 +32,22 @@ addEventListener('fetch', (event: any) => {
 
   event.respondWith(response);
 });
+
+const handleGET = async (event: any) => {
+  const startTime = Date.now();
+  let response = await env.CF_CACHE.match(event.request);
+  if (!response) {
+    response = await serveNPMFile(event.request);
+    if (response.status < 400) {
+      event.waitUntil(env.CF_CACHE.put(event.request, response.clone()));
+    }
+  }
+
+  const totalTime = Date.now() - startTime;
+  const newResponse = new Response(response.body, response);
+  newResponse.headers.set('Server-Timing', `total;dur=${totalTime}`);
+  return newResponse
+};
 
 const serveNPMFile = async (request: Request) => {
   const url = parseUrl(request.url);
@@ -61,7 +77,7 @@ const serveNPMFile = async (request: Request) => {
           location: `/${manifest._id}${rest}?meta`
         }
       });
-    } else if (rest === 'package.json') {
+    } else if (rest === '/package.json') {
       return new Response(JSON.stringify(manifest), {
         status: 200,
         headers: {

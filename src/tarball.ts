@@ -24,10 +24,10 @@ export interface Directory extends Asset {
   files: { [name: string]: File | Directory; };
 }
 
+const flate = import('./flate');
+
 const gunzip = (() => {
-  let flate: any;
   return async (data: Uint8Array): Promise<Uint8Array> => {
-    if (!flate) flate = import('./flate');
     return (await flate).gzip_decode_raw(new Uint8Array(data));
   };
 })();
