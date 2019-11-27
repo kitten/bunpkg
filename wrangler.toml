@@ -7,17 +7,10 @@ kv-namespaces = [
   { binding = "NPMFILES", id = "a81a61d063854a42b6ebcce1487bff02" }
 ]
 
-[env.staging]
-name = "bunpkg-staging"
-webpack_config = "webpack.config.production.js"
-kv-namespaces = [
-  { binding = "NPMFILES", id = "a81a61d063854a42b6ebcce1487bff02" }
-]
-
 [env.production]
 name = "bunpkg"
 webpack_config = "webpack.config.production.js"
 kv-namespaces = [
-  { binding = "NPMFILES", id = "a81a61d063854a42b6ebcce1487bff02" }
+  { binding = "NPMFILES", id = "5f02b4600f744ec9981e262dfe66f10f" }
 ]
 

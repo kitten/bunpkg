@@ -27,7 +27,7 @@ export interface Directory extends Asset {
 const gunzip = (() => {
   let flate: any;
   return async (data: Uint8Array): Promise<Uint8Array> => {
-    if (!flate) flate = import('./flate/wasm_flate_bg.wasm');
+    if (!flate) flate = import('./flate');
     return (await flate).gzip_decode_raw(new Uint8Array(data));
   };
 })();
