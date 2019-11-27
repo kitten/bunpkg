@@ -130,7 +130,11 @@ const serveNPMFile = async (request: Request) => {
     if (error.status) {
       return new Response(error.message, { status: error.status, headers: env.BASE_HEADERS });
     } else {
-      return new Response('Internal Server Error', { status: 500, headers: env.BASE_HEADERS });
+      console.log(error);
+      return new Response(
+        'Internal Server Error\n' + error.message,
+        { status: 500, headers: env.BASE_HEADERS }
+      );
     }
   }
 };

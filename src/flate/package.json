@@ -1,0 +1,16 @@
+{
+  "name": "wasm-flate",
+  "collaborators": [
+    "David Holtz <david.richard.holtz@gmail.com>",
+    "Nicolas Brugneaux <nicolas.brugneaux@gmail.com>"
+  ],
+  "version": "1.0.0",
+  "files": [
+    "wasm_flate_bg.wasm",
+    "wasm_flate.js",
+    "wasm_flate.d.ts"
+  ],
+  "module": "wasm_flate.js",
+  "types": "wasm_flate.d.ts",
+  "sideEffects": "false"
+}

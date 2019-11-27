@@ -1,12 +1,11 @@
-import { ReadableWebToNodeStream } from 'readable-web-to-node-stream';
 import { lookup as lookupMime } from 'mime-types';
 import { normalize as normalizePath } from 'path';
 import { extract } from 'tar-stream';
-import { createGunzip } from 'zlib';
 
 import { Manifest } from './metadata';
 import { getJSON, putJSON, putFile } from './files';
 import { getRegistryPath, fetchRegistry } from './registry';
+import { arrayLikeToStream } from './buffer';
 
 export interface Asset {
   path: string;
@@ -23,6 +22,12 @@ export interface Directory extends Asset {
   type: 'directory';
   files: { [name: string]: File | Directory; };
 }
+
+const gunzip = (() => {
+  const flate = import('./flate');
+  return async (data: Uint8Array): Promise<Uint8Array> =>
+    (await flate).gzip_decode_raw(new Uint8Array(data));
+})();
 
 const isFileIncluded = (name: string): boolean =>
   name !== '.npmignore' &&
@@ -59,9 +64,9 @@ const getDirectory = (root: Directory, path: string[]): Directory => {
 const fetchTarball = async (manifest: Manifest): Promise<Directory> => {
   const path = getRegistryPath(manifest.dist.tarball);
   const response = await fetchRegistry(path);
-  const body = new ReadableWebToNodeStream(response.body);
+  const body = await response.arrayBuffer();
+  const decomp = await gunzip(body as any);
   const extractStream = extract();
-  const deflateStream = createGunzip();
 
   const contents: Directory = {
     type: 'directory',
@@ -106,20 +111,11 @@ const fetchTarball = async (manifest: Manifest): Promise<Directory> => {
         .catch(reject);
     });
 
-    deflateStream.on('error', (error: Error) => {
-      extractStream.end();
-      reject(error);
-    });
-
-    extractStream.on('error', error => {
-      deflateStream.end();
-      reject(error);
-    });
-
+    extractStream.on('error', reject);
     extractStream.on('finish', resolve);
   });
 
-  body.pipe(deflateStream).pipe(extractStream);
+  arrayLikeToStream(decomp).pipe(extractStream);
   await deflate$;
   return contents;
 };

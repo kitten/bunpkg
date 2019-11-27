@@ -74,6 +74,6 @@ export const resolve = (
       node.files[last + '.json'];
   }
 
-  if (target.type !== 'file') throw error(404, 'File not found');
+  if (!target || target.type !== 'file') throw error(404, 'File not found');
   return target;
 };

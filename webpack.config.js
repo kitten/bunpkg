@@ -1,13 +1,15 @@
 module.exports = {
   target: 'webworker',
   entry: './src/index.ts',
-  devtool: 'source-map',
-  mode: 'development',
+  mode: 'production',
   resolve: {
     alias: {
       osenv: require.resolve('./src/stubs/osenv.ts')
     },
     extensions: ['.wasm', '.mjs', '.ts', '.js', '.json']
+  },
+  node: {
+    ArrayBuffer: false
   },
   module: {
     rules: [
@@ -16,7 +18,8 @@ module.exports = {
         exclude: /node_modules/,
         loader: 'babel-loader',
         options: {
-          presets: ['@babel/preset-typescript']
+          presets: ['@babel/preset-typescript'],
+          plugins: ['@babel/plugin-syntax-dynamic-import']
         }
       }
     ]

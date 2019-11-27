@@ -1,29 +1,23 @@
 import QuickLRU from 'quick-lru';
 import { Buffer } from 'buffer';
 import * as stream from 'stream';
+
+import { streamToBuffer } from './buffer';
 import * as env from './env';
 
 const storage = env.NPMFILE_STORAGE;
 const cache = new QuickLRU<string, Buffer>({ maxSize: 1000 });
 
-export const putFile = (
+export const putFile = async (
   path: string,
   size: number,
   stream: stream.Readable
-): Promise<void> => new Promise((resolve, reject) => {
-  const buffers: Buffer[] = [];
-  stream
-    .on('data', buffer => buffers.push(buffer))
-    .on('error', reject)
-    .on('end', () => {
-      const combined = Buffer.concat(buffers, size);
-      const target = `file:${path}`;
-      cache.set(target, combined);
-      storage.put(target, combined);
-      resolve();
-    })
-    .resume();
-});
+): Promise<void> => {
+  const buffer = await streamToBuffer(stream, size);
+  const target = `file:${path}`;
+  cache.set(target, buffer);
+  storage.put(target, buffer);
+};
 
 export const putJSON = (path: string, json: object): void =>
   storage.put(`json:${path}`, JSON.stringify(json));
