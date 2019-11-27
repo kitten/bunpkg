@@ -62,7 +62,6 @@ const serveNPMFile = async (request: Request) => {
   try {
     const [, packageName, selector = 'latest', rest = ''] = parsed;
     const manifest = await fetchManifest(packageName, selector);
-    const contents = await getContents(manifest);
     const isMeta = url.query === 'meta';
 
     if (isMeta && selector !== manifest.version) {
@@ -74,7 +73,10 @@ const serveNPMFile = async (request: Request) => {
           location: `/${manifest._id}${rest}?meta`
         }
       });
-    } else if ((!rest || rest === '/') && isMeta) {
+    }
+
+    const contents = await getContents(manifest);
+    if ((!rest || rest === '/') && isMeta) {
       return new Response(JSON.stringify(toMetaOutput(contents)), {
         status: 200,
         headers: {

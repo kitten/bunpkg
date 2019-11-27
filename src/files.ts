@@ -18,8 +18,8 @@ export const putFile = async (
   storage.put(target, buffer);
 };
 
-export const putJSON = (path: string, json: object): void =>
-  storage.put(`json:${path}`, JSON.stringify(json));
+export const putJSON = (path: string, json: object, ttl = env.LONG_CACHE_TTL): void =>
+  storage.put(`json:${path}`, JSON.stringify(json), { expirationTtl: ttl });
 
 export const getFile = async (path: string): Promise<null | Buffer | ReadableStream> => {
   const target = `file:${path}`;

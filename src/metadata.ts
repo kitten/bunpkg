@@ -3,6 +3,7 @@ import pickManifest from 'npm-pick-manifest';
 import error from 'http-errors';
 
 import { fetchRegistry } from './registry';
+import { putJSON, getJSON } from './files';
 import * as env from './env';
 
 export interface ManifestDist {
@@ -40,6 +41,9 @@ export const fetchPackument = async (packageName: string) => {
     throw error(400, 'Invalid package name');
   }
 
+  const cached = await getJSON(packageName);
+  if (cached) return cached;
+
   const response = await fetchRegistry(`/${packageName}`, {
     headers: {
       'content-type': 'application/json'
@@ -47,7 +51,9 @@ export const fetchPackument = async (packageName: string) => {
   });
 
   try {
-    return await response.json();
+    const packument = await response.json();
+    putJSON(packageName, packument, env.SHORT_CACHE_TTL);
+    return packument;
   } catch (_error) {
     throw error(500);
   }

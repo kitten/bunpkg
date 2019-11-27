@@ -63,6 +63,7 @@ const getDirectory = (root: Directory, path: string[]): Directory => {
 
 const fetchTarball = async (manifest: Manifest): Promise<Directory> => {
   const path = getRegistryPath(manifest.dist.tarball);
+  console.log('-', path);
   const response = await fetchRegistry(path);
   const body = await response.arrayBuffer();
   const decomp = await gunzip(body as any);
@@ -122,9 +123,9 @@ const fetchTarball = async (manifest: Manifest): Promise<Directory> => {
 
 export const getContents = async (manifest: Manifest, skipCache = false): Promise<Directory> => {
   const path = `${manifest._id}/contents.json`;
-  if (skipCache !== true) {
+  if (!skipCache) {
     const cachedContents = await getJSON<Directory>(path);
-    if (cachedContents !== null) return cachedContents;
+    if (cachedContents) return cachedContents;
   }
 
   const contents = await fetchTarball(manifest);
