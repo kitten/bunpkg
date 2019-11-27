@@ -1,5 +1,4 @@
 import QuickLRU from 'quick-lru';
-import { Buffer } from 'buffer';
 import * as stream from 'stream';
 
 import { streamToBuffer } from './buffer';
@@ -22,9 +21,9 @@ export const putFile = async (
 export const putJSON = (path: string, json: object): void =>
   storage.put(`json:${path}`, JSON.stringify(json));
 
-export const getFile = async (path: string): Promise<null | Buffer> => {
+export const getFile = async (path: string): Promise<null | Buffer | ReadableStream> => {
   const target = `file:${path}`;
-  const file = await storage.get(target, 'arrayBuffer');
+  const file = await storage.get(target, 'stream');
   if (!file) {
     return cache.get(target) || null;
   }
