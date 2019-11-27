@@ -5,10 +5,16 @@ import { streamToBuffer } from './buffer';
 import * as env from './env';
 
 const storage = env.NPMFILE_STORAGE;
-const cache = new LRUCache<string, Buffer>({
+
+const fileCache = new LRUCache<string, Buffer>({
   length: buffer => buffer.length,
-  max: env.MAX_BYTE_SIZE * 100,
+  max: env.MAX_BYTE_SIZE * 50,
   maxAge: env.SHORT_CACHE_TTL
+});
+
+const jsonCache = new LRUCache<string, any>({
+  maxAge: env.SHORT_CACHE_TTL,
+  max: 500
 });
 
 export const putFile = async (
@@ -18,22 +24,26 @@ export const putFile = async (
 ): Promise<void> => {
   const buffer = await streamToBuffer(stream, size);
   const target = `file:${path}`;
-  cache.set(target, buffer);
-  storage.put(target, buffer);
+  if (!fileCache.has(target)) {
+    fileCache.set(target, buffer);
+    await storage.put(target, buffer);
+  }
 };
 
-export const putJSON = (path: string, json: object, ttl = env.LONG_CACHE_TTL): void =>
-  storage.put(`json:${path}`, JSON.stringify(json), { expirationTtl: ttl });
+export const putJSON = async (path: string, json: object, ttl = env.LONG_CACHE_TTL): Promise<void> => {
+  if (!jsonCache.has(path)) {
+    jsonCache.set(path, json);
+    await storage.put(`json:${path}`, JSON.stringify(json), { expirationTtl: ttl });
+  }
+};
 
 export const getFile = async (path: string): Promise<null | Buffer | ReadableStream> => {
   const target = `file:${path}`;
-  const file = await storage.get(target, 'stream');
-  if (!file) {
-    return cache.get(target) || null;
-  }
-
-  return file;
+  if (fileCache.has(target)) return fileCache.get(target);
+  return (await storage.get(target, 'stream')) || null;
 };
 
-export const getJSON = <T>(path: string): Promise<null | T> =>
-  storage.get(`json:${path}`, 'json');
+export const getJSON = async <T>(path: string): Promise<null | T> => {
+  if (jsonCache.has(path)) return jsonCache.get(path);
+  return await storage.get(`json:${path}`, 'json');
+};

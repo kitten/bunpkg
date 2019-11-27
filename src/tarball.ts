@@ -136,7 +136,7 @@ export const getContents = async (manifest: Manifest, skipCache = false): Promis
   }
 
   const contents = await fetchTarball(manifest);
-  putJSON(path, contents);
+  await putJSON(path, contents);
   return contents;
 };
 

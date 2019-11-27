@@ -52,7 +52,7 @@ export const fetchPackument = async (packageName: string) => {
 
   try {
     const packument = await response.json();
-    putJSON(packageName, packument, env.SHORT_CACHE_TTL);
+    await putJSON(packageName, packument, env.SHORT_CACHE_TTL);
     return packument;
   } catch (_error) {
     throw error(500);
