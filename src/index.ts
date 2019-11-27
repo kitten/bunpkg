@@ -48,6 +48,12 @@ const handleGET = async (event: any) => {
 const serveNPMFile = async (request: Request) => {
   const url = parseUrl(request.url);
   const pathname = url.pathname.slice(1);
+  if (!pathname || pathname === '/') {
+    return new Response('Bunpkg', { status: 200 });
+  } else if (pathname === 'favicon.ico') {
+    return new Response('Not Found', { status: 404 });
+  }
+
   const parsed = pathname.match(pkgRe);
   if (!parsed) {
     return new Response('Not Found', { status: 404 });
