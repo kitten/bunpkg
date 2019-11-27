@@ -73,6 +73,15 @@ const serveNPMFile = async (request: Request) => {
           location: `/${manifest._id}${rest}?meta`
         }
       });
+    } else if (rest === 'package.json') {
+      return new Response(JSON.stringify(manifest), {
+        status: 200,
+        headers: {
+          ...env.BASE_HEADERS,
+          'cache-control': env.LONG_CACHE_CONTROL,
+          'content-type': 'application/json'
+        }
+      });
     }
 
     const contents = await getContents(manifest);
