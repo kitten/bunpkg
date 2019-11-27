@@ -135,3 +135,14 @@ export const getContents = async (manifest: Manifest, skipCache = false): Promis
   putJSON(path, contents);
   return contents;
 };
+
+export const toMetaOutput = (asset: File | Directory): object => {
+  if (asset.type === 'directory') {
+    return {
+      ...asset,
+      files: Object.values(asset.files).map(toMetaOutput)
+    };
+  } else {
+    return asset;
+  }
+};

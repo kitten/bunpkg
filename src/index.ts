@@ -4,11 +4,11 @@ import { contentType } from 'mime-types';
 
 import * as env from './env';
 import { fetchManifest } from './metadata';
-import { getContents } from './tarball';
+import { getContents, toMetaOutput } from './tarball';
+import { resolve, getAsset } from './resolve';
 import { getFile } from './files';
-import { resolve } from './resolve';
 
-const pkgRe = /^(@[\w-]+\/[\w-]+|[\w-]+)(?:@([\w-]+|\d+\.\d+\.\d+(?:-[\.\w-]+)?))?(.*)/;
+const pkgRe = /^(@[\w-]+\/[\w-]+|[\w-]+)(?:@([\w\d-\.]+))?(\/.*)?/;
 
 addEventListener('fetch', (event: any) => {
   let response: Response;
@@ -20,7 +20,7 @@ addEventListener('fetch', (event: any) => {
         status: 200,
         headers: {
           ...env.BASE_HEADERS,
-          'cache-control': 'public, max-age=31536000',
+          'cache-control': env.LONG_CACHE_CONTROL,
           'allow': 'OPTIONS, GET, POST'
         }
       });
@@ -37,7 +37,7 @@ const handleGET = async (event: any) => {
   let response = await env.CF_CACHE.match(event.request);
   if (!response) {
     response = await serveNPMFile(event.request);
-    if (response.status === 200) {
+    if (response.status < 400) {
       event.waitUntil(env.CF_CACHE.put(event.request, response.clone()));
     }
   }
@@ -54,15 +54,36 @@ const serveNPMFile = async (request: Request) => {
   }
 
   try {
-    const [, packageName, selector = 'latest', rest] = parsed;
+    const [, packageName, selector = 'latest', rest = ''] = parsed;
     const manifest = await fetchManifest(packageName, selector);
     const contents = await getContents(manifest);
+    const isMeta = url.query === 'meta';
 
-    if ((!rest || rest === '/') && url.query === 'meta') {
-      return new Response(JSON.stringify(contents), {
+    if (isMeta && selector !== manifest.version) {
+      return new Response('', {
+        status: 302,
+        headers: {
+         ...env.BASE_HEADERS,
+          'cache-control': env.SHORT_CACHE_CONTROL,
+          location: `/${manifest._id}${rest}?meta`
+        }
+      });
+    } else if ((!rest || rest === '/') && isMeta) {
+      return new Response(JSON.stringify(toMetaOutput(contents)), {
         status: 200,
         headers: {
           ...env.BASE_HEADERS,
+          'cache-control': env.LONG_CACHE_CONTROL,
+          'content-type': 'application/json'
+        }
+      });
+    } else if (isMeta) {
+      const asset = getAsset(contents, rest);
+      return new Response(JSON.stringify(toMetaOutput(asset)), {
+        status: 200,
+        headers: {
+          ...env.BASE_HEADERS,
+          'cache-control': env.LONG_CACHE_CONTROL,
           'content-type': 'application/json'
         }
       });
@@ -70,6 +91,18 @@ const serveNPMFile = async (request: Request) => {
 
     const asset = resolve(manifest, contents, rest);
     const target = `${manifest._id}${asset.path}`;
+    if (target !== pathname) {
+      return new Response('', {
+        status: 302,
+        headers: {
+         ...env.BASE_HEADERS,
+          'cache-control': selector !== manifest.version
+            ? env.SHORT_CACHE_CONTROL
+            : env.LONG_CACHE_CONTROL,
+          location: `/${target}`
+        }
+      });
+    }
 
     let file = await getFile(target);
     if (!file) {
@@ -82,10 +115,9 @@ const serveNPMFile = async (request: Request) => {
       status: 200,
       headers: ({
         ...env.BASE_HEADERS,
-        'cache-control': 'public, max-age=31536000',
+        'cache-control': env.LONG_CACHE_CONTROL,
         'content-type': contentType(asset.contentType),
-        'content-length': asset.size,
-        'content-location': `/${target}`
+        'content-length': asset.size
       } as any)
     });
   } catch (error) {
