@@ -24,9 +24,11 @@ export interface Directory extends Asset {
 }
 
 const gunzip = (() => {
-  const flate = import('./flate');
-  return async (data: Uint8Array): Promise<Uint8Array> =>
-    (await flate).gzip_decode_raw(new Uint8Array(data));
+  let flate: any;
+  return async (data: Uint8Array): Promise<Uint8Array> => {
+    if (!flate) flate = import('./flate');
+    return (await flate).gzip_decode_raw(new Uint8Array(data));
+  };
 })();
 
 const isFileIncluded = (name: string): boolean =>
