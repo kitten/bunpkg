@@ -1,0 +1,19 @@
+type = "webpack"
+name = "bunpkg"
+account_id = "$CF_ACCOUNT_ID"
+zone_id = "$CF_ZONE_ID"
+
+[env.staging]
+workers_dev = true
+webpack_config = "webpack.config.js"
+kv-namespaces = [
+  { binding = "NPMFILES", id = "$CF_DEV_KV" }
+]
+
+[env.production]
+webpack_config = "webpack.config.production.js"
+route = "bunpkg.dev/*"
+kv-namespaces = [
+  { binding = "NPMFILES", id = "$CF_PROD_KV" }
+]
+
