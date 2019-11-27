@@ -119,6 +119,14 @@ const serveNPMFile = async (request: Request) => {
           location: `/${target}`
         }
       });
+    } else if (asset.size > env.MAX_BYTE_SIZE) {
+      return new Response('Asset too large', {
+        status: 204,
+        headers: {
+         ...env.BASE_HEADERS,
+          'cache-control': env.LONG_CACHE_CONTROL
+        }
+      });
     }
 
     let file = await getFile(target);

@@ -6,6 +6,7 @@ import { Manifest } from './metadata';
 import { getJSON, putJSON, putFile } from './files';
 import { getRegistryPath, fetchRegistry } from './registry';
 import { arrayLikeToStream } from './buffer';
+import * as env from './env';
 
 export interface Asset {
   path: string;
@@ -109,9 +110,13 @@ const fetchTarball = async (manifest: Manifest): Promise<Directory> => {
         size,
       };
 
-      putFile(`${manifest._id}${normalizedPath}`, size, stream)
-        .then(next)
-        .catch(reject);
+      if (size > env.MAX_BYTE_SIZE) {
+        next();
+      } else {
+        putFile(`${manifest._id}${normalizedPath}`, size, stream)
+          .then(next)
+          .catch(reject);
+      }
     });
 
     extractStream.on('error', reject);
