@@ -1,11 +1,15 @@
-import QuickLRU from 'quick-lru';
+import LRUCache from 'lru-cache';
 import * as stream from 'stream';
 
 import { streamToBuffer } from './buffer';
 import * as env from './env';
 
 const storage = env.NPMFILE_STORAGE;
-const cache = new QuickLRU<string, Buffer>({ maxSize: 1000 });
+const cache = new LRUCache<string, Buffer>({
+  length: buffer => buffer.length,
+  max: env.MAX_BYTE_SIZE * 100,
+  maxAge: env.SHORT_CACHE_TTL
+});
 
 export const putFile = async (
   path: string,
