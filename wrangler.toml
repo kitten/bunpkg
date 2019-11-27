@@ -1,0 +1,23 @@
+type = "webpack"
+name = "bunpkg-dev"
+account_id = "a261b92e6b94f88e79c9c863e19accd4"
+webpack_config = "webpack.config.js"
+workers_dev = true
+kv-namespaces = [
+  { binding = "NPMFILES", id = "a81a61d063854a42b6ebcce1487bff02" }
+]
+
+[env.staging]
+name = "bunpkg-staging"
+webpack_config = "webpack.config.production.js"
+kv-namespaces = [
+  { binding = "NPMFILES", id = "a81a61d063854a42b6ebcce1487bff02" }
+]
+
+[env.production]
+name = "bunpkg"
+webpack_config = "webpack.config.production.js"
+kv-namespaces = [
+  { binding = "NPMFILES", id = "a81a61d063854a42b6ebcce1487bff02" }
+]
+

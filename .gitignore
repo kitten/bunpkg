@@ -1,0 +1,6 @@
+.serverless
+.env
+*.log
+node_modules/
+dist/
+worker/

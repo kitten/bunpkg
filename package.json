@@ -1,0 +1,32 @@
+{
+  "name": "bunpkg",
+  "version": "1.0.0",
+  "description": "A fast CDN for everything on npm",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Formidable",
+  "license": "MIT",
+  "dependencies": {
+    "buffer": "^5.4.3",
+    "http-errors": "^1.7.3",
+    "mime-types": "^2.1.25",
+    "npm-package-arg": "^7.0.0",
+    "npm-pick-manifest": "^4.0.0",
+    "quick-lru": "^4.0.1",
+    "readable-web-to-node-stream": "^2.0.0",
+    "tar-stream": "^2.1.0",
+    "validate-npm-package-name": "^3.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.7.4",
+    "@babel/preset-typescript": "^7.7.4",
+    "@types/http-errors": "^1.6.3",
+    "@types/mime-types": "^2.1.0",
+    "@types/tar-stream": "^1.6.1",
+    "babel-loader": "^8.0.6",
+    "serverless-cloudflare-workers": "1.0.5",
+    "typescript": "^3.7.2",
+    "webpack": "^4.41.2"
+  }
+}
