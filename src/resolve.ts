@@ -34,6 +34,7 @@ export const resolve = (
 ): File => {
   if (!path || path === '/') {
     const defaultPath = pickString(
+      manifest.unpkg,
       manifest.browser,
       manifest.web,
       manifest.main,

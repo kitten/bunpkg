@@ -19,6 +19,7 @@ export interface Manifest {
   name: string;
   version: string;
   main?: string;
+  unpkg?: string;
   module?: string;
   web?: string;
   browser?: string;
