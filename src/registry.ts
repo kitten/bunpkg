@@ -1,9 +1,9 @@
-import { parse as parseUrl } from 'url';
+import Url from 'url-parse';
 import error from 'http-errors';
 
 import * as env from './env';
 
-export const getRegistryPath = (fullUrl: string) => parseUrl(fullUrl).pathname;
+export const getRegistryPath = (fullUrl: string) => new Url(fullUrl, false).pathname;
 
 export const fetchRegistry = async (path: string, init?: RequestInit): Promise<Response> => {
   const opts = { ...init };

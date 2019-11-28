@@ -1,6 +1,5 @@
 import error from 'http-errors';
-import { parse as parseUrl } from 'url';
-import { contentType } from 'mime-types';
+import Url from 'url-parse';
 
 import * as env from './env';
 import { fetchManifest } from './metadata';
@@ -50,14 +49,14 @@ const handleGET = async (event: any) => {
 };
 
 const serveNPMFile = async (request: Request) => {
-  const url = parseUrl(request.url);
+  const url = new Url(request.url, false);
 
   let pathname = url.pathname.slice(1);
   if (!pathname || pathname === '/') {
     return new Response('Bunpkg', { status: 200 });
   } else if (pathname === 'favicon.ico') {
     return new Response('Not Found', { status: 404 });
-  } else if (!pathname.startsWith('n')) {
+  } else if (!pathname.startsWith('n/')) {
     return new Response('Not Found', { status: 404 });
   } else {
     pathname = pathname.slice(2);
@@ -71,7 +70,7 @@ const serveNPMFile = async (request: Request) => {
   try {
     const [, packageName, selector = 'latest', rest = ''] = parsed;
     const manifest = await fetchManifest(packageName, selector);
-    const isMeta = url.query === 'meta';
+    const isMeta = request.url.endsWith('?meta');
 
     if (isMeta && selector !== manifest.version) {
       return new Response('', {
@@ -150,7 +149,7 @@ const serveNPMFile = async (request: Request) => {
       headers: ({
         ...env.BASE_HEADERS,
         'cache-control': env.LONG_CACHE_CONTROL,
-        'content-type': contentType(asset.contentType),
+        'content-type': asset.contentType || 'text/plain',
         'content-length': asset.size
       } as any)
     });

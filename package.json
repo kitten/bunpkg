@@ -10,8 +10,9 @@
   "dependencies": {
     "http-errors": "^1.7.3",
     "lru-cache": "^5.1.1",
-    "mime-types": "^2.1.25",
+    "mime": "^2.4.4",
     "semver": "^6.3.0",
+    "url-parse": "^1.4.7",
     "validate-npm-package-name": "^3.0.0"
   },
   "devDependencies": {
@@ -20,7 +21,8 @@
     "@babel/preset-typescript": "^7.7.4",
     "@types/http-errors": "^1.6.3",
     "@types/lru-cache": "^5.1.0",
-    "@types/mime-types": "^2.1.0",
+    "@types/url-parse": "^1.4.3",
+    "@wasm-tool/wasm-pack-plugin": "^1.0.1",
     "babel-loader": "^8.0.6",
     "serverless-cloudflare-workers": "1.0.5",
     "typescript": "^3.7.2",

@@ -1,9 +1,9 @@
-import { lookup as lookupMime } from 'mime-types';
 import { normalize as normalizePath } from 'path';
 
 import { Manifest } from './metadata';
 import { getJSON, putJSON, putFile } from './files';
 import { getRegistryPath, fetchRegistry } from './registry';
+import { getContentType } from './mime';
 import * as env from './env';
 
 export interface Asset {
@@ -35,11 +35,6 @@ const isFileIncluded = (name: string): boolean =>
   name !== '.npmignore' &&
   name !== '.gitignore' &&
   name !== '.DS_Store';
-
-const getMimeByName = (name: string): string => {
-  const mime = lookupMime(name)
-  return typeof mime === 'string' ? mime : 'application/octet-stream';
-};
 
 const getDirectory = (root: Directory, path: string[]): Directory => {
   let directoryPath = '/';
@@ -83,7 +78,7 @@ const fetchTarball = async (manifest: Manifest): Promise<Directory> => {
       continue;
     }
 
-    const contentType = getMimeByName(filename);
+    const contentType = getContentType(filename);
     const directory = getDirectory(contents, path);
     const normalizedPath = directory.path + filename;
 

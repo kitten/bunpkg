@@ -1,4 +1,5 @@
 /wrangler.toml
+/pkg
 .serverless
 .env
 *.log
