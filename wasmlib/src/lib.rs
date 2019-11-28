@@ -13,8 +13,7 @@ type ArchiveMap = HashMap<String, ArchiveEntry>;
 #[wasm_bindgen]
 pub fn unpack_tgz(input: JsValue) -> JsValue {
     let deserialized: ByteBuf = serde_wasm_bindgen::from_value(input).unwrap();
-    let compressed: Vec<u8> = deserialized.as_ref().iter().cloned().collect();
-    let decoder = Decoder::new(&compressed[..]).unwrap();
+    let decoder = Decoder::new(deserialized.as_ref()).unwrap();
     let mut archive = Archive::new(decoder);
     let mut files: ArchiveMap = HashMap::new();
     for file in archive.entries().unwrap() {

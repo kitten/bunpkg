@@ -53,7 +53,6 @@ const serveNPMFile = async (request: Request) => {
   const url = parseUrl(request.url);
 
   let pathname = url.pathname.slice(1);
-  console.log(pathname);
   if (!pathname || pathname === '/') {
     return new Response('Bunpkg', { status: 200 });
   } else if (pathname === 'favicon.ico') {
