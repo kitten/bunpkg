@@ -14,8 +14,8 @@
     "lru-cache": "^5.1.1",
     "mime-types": "^2.1.25",
     "npm-package-arg": "^7.0.0",
-    "npm-pick-manifest": "^4.0.0",
     "readable-web-to-node-stream": "^2.0.0",
+    "semver": "^6.3.0",
     "tar-stream": "^2.1.0",
     "typedarray-to-buffer": "^3.1.5",
     "validate-npm-package-name": "^3.0.0"

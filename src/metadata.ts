@@ -1,5 +1,5 @@
 import validatePackageName from 'validate-npm-package-name';
-import pickManifest from 'npm-pick-manifest';
+import * as semver from 'semver';
 import error from 'http-errors';
 
 import { fetchRegistry } from './registry';
@@ -37,12 +37,12 @@ export interface Packument {
   /* ... */
 }
 
-export const fetchPackument = async (packageName: string) => {
+export const fetchPackument = async (packageName: string): Promise<Packument> => {
   if (!validatePackageName(packageName).validForNewPackages) {
     throw error(400, 'Invalid package name');
   }
 
-  const cached = await getJSON(packageName);
+  const cached = await getJSON<Packument>(packageName);
   if (cached) return cached;
 
   const response = await fetchRegistry(`/${packageName}`, {
@@ -62,9 +62,43 @@ export const fetchPackument = async (packageName: string) => {
 
 export const fetchManifest = async (packageName: string, selector: string): Promise<Manifest> => {
   const packument = await fetchPackument(packageName);
-  try {
-    return pickManifest(packument, selector);
-  } catch (_error) {
-    throw error(400, `@{packageName}@${selector} does not match any published versions`);
+
+  let version: string | void;
+  let range: string | void;
+  if (!selector || selector === 'latest') {
+    version = packument['dist-tags']['latest'];
+  } else if (version = semver.valid(selector, true)) {
+    version = semver.clean(version, true) || undefined;
+  } else if (range = semver.validRange(selector, true)) {
+    range = range || undefined;
+    version = undefined;
+  } else if (encodeURIComponent(selector) !== selector) {
+    throw error('400 Invalid tag name');
+  } else if (version = packument['dist-tags'][selector]) {
+    range = undefined;
+    version = version || undefined;
   }
+
+  const versions = Object.keys(packument.versions || {})
+    .filter(v => semver.valid(v, true));
+  if (!versions.length) {
+    throw error(400, `No valid versions available for ${packument.name}`);
+  } else if (version) {
+    const manifest = packument.versions[version];
+    if (!manifest) {
+      throw error(404, `No valid version found for ${packument.name}@${version}`);
+    }
+
+    return manifest;
+  } else if (range) {
+    const version = semver.maxSatisfying(versions, range, true);
+    const manifest = packument.versions[version];
+    if (!manifest) {
+      throw error(404, `No valid version found for ${packument.name}@${range}`);
+    }
+
+    return manifest;
+  }
+
+  throw error(400, `${packageName}@${selector} does not match any published versions`);
 };
