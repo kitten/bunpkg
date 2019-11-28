@@ -1,13 +1,10 @@
 import LRUCache from 'lru-cache';
-import * as stream from 'stream';
-
-import { streamToBuffer } from './buffer';
 import * as env from './env';
 
 const storage = env.NPMFILE_STORAGE;
 
-const fileCache = new LRUCache<string, Buffer>({
-  length: buffer => buffer.length,
+const fileCache = new LRUCache<string, ArrayBufferLike>({
+  length: buffer => buffer.byteLength,
   max: env.MAX_BYTE_SIZE * 50,
   maxAge: env.SHORT_CACHE_TTL
 });
@@ -17,12 +14,8 @@ const jsonCache = new LRUCache<string, any>({
   max: 500
 });
 
-export const putFile = async (
-  path: string,
-  size: number,
-  stream: stream.Readable
-): Promise<void> => {
-  const buffer = await streamToBuffer(stream, size);
+export const putFile = async (path: string, raw: Uint8Array): Promise<void> => {
+  const buffer = raw.buffer;
   const target = `file:${path}`;
   if (!fileCache.has(target)) {
     fileCache.set(target, buffer);
@@ -37,7 +30,7 @@ export const putJSON = async (path: string, json: object, ttl = env.LONG_CACHE_T
   }
 };
 
-export const getFile = async (path: string): Promise<null | Buffer | ReadableStream> => {
+export const getFile = async (path: string): Promise<null | ArrayBufferLike | ReadableStream> => {
   const target = `file:${path}`;
   if (fileCache.has(target)) return fileCache.get(target);
   return (await storage.get(target, 'stream')) || null;

@@ -1,11 +1,9 @@
 import { lookup as lookupMime } from 'mime-types';
 import { normalize as normalizePath } from 'path';
-import { extract } from 'tar-stream';
 
 import { Manifest } from './metadata';
 import { getJSON, putJSON, putFile } from './files';
 import { getRegistryPath, fetchRegistry } from './registry';
-import { arrayLikeToStream } from './buffer';
 import * as env from './env';
 
 export interface Asset {
@@ -24,11 +22,12 @@ export interface Directory extends Asset {
   files: { [name: string]: File | Directory; };
 }
 
-const flate = import('./flate');
+type Archive = Map<string, [number, Uint8Array]>;
 
-const gunzip = (() => {
-  return async (data: Uint8Array): Promise<Uint8Array> => {
-    return (await flate).gzip_decode_raw(new Uint8Array(data));
+const unpackTarball = (() => {
+  const wasmArchive = import('./wasm/wasm_archive');
+  return async (input: ArrayBuffer): Promise<Archive> => {
+    return (await wasmArchive).unpack_tgz(input);
   };
 })();
 
@@ -66,11 +65,9 @@ const getDirectory = (root: Directory, path: string[]): Directory => {
 
 const fetchTarball = async (manifest: Manifest): Promise<Directory> => {
   const path = getRegistryPath(manifest.dist.tarball);
-  console.log('-', path);
   const response = await fetchRegistry(path);
   const body = await response.arrayBuffer();
-  const decomp = await gunzip(body as any);
-  const extractStream = extract();
+  const archive = await unpackTarball(body);
 
   const contents: Directory = {
     type: 'directory',
@@ -79,52 +76,30 @@ const fetchTarball = async (manifest: Manifest): Promise<Directory> => {
     files: Object.create(null)
   };
 
-  const deflate$ = new Promise<Directory>((resolve, reject) => {
-    extractStream.on('entry', (header, stream, next) => {
-      if (header.type !== 'file' && header.type !== 'directory') {
-        stream.on('end', next);
-        return stream.resume();
-      }
+  for (const [filePath, [size, data]] of archive){
+    const path = normalizePath(filePath).split('/').slice(1);
+    const filename = path[path.length - 1];
+    if (!isFileIncluded(filename) || !filename) {
+      continue;
+    }
 
-      const path = normalizePath(header.name).split('/').slice(1);
-      const filename = path[path.length - 1];
-      if (
-        (header.type !== 'file' && header.type !== 'directory') ||
-        !isFileIncluded(filename) ||
-        !filename
-      ) {
-        stream.on('end', next);
-        return stream.resume();
-      }
+    const contentType = getMimeByName(filename);
+    const directory = getDirectory(contents, path);
+    const normalizedPath = directory.path + filename;
 
-      const size = header.type === 'file' ? header.size : 0;
-      const contentType = header.type === 'file' ? getMimeByName(filename) : '';
-      const directory = getDirectory(contents, path);
-      const normalizedPath = directory.path + filename;
+    directory.files[filename] = {
+      type: 'file',
+      path: normalizedPath,
+      name: filename,
+      contentType,
+      size,
+    };
 
-      directory.files[filename] = {
-        type: 'file',
-        path: normalizedPath,
-        name: filename,
-        contentType,
-        size,
-      };
+    if (size < env.MAX_BYTE_SIZE) {
+      putFile(`${manifest._id}${normalizedPath}`, data);
+    }
+  }
 
-      if (size > env.MAX_BYTE_SIZE) {
-        next();
-      } else {
-        putFile(`${manifest._id}${normalizedPath}`, size, stream)
-          .then(next)
-          .catch(reject);
-      }
-    });
-
-    extractStream.on('error', reject);
-    extractStream.on('finish', resolve);
-  });
-
-  arrayLikeToStream(decomp).pipe(extractStream);
-  await deflate$;
   return contents;
 };
 
