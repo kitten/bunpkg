@@ -25,7 +25,7 @@ export interface Directory extends Asset {
 type Archive = Map<string, [number, Uint8Array]>;
 
 const unpackTarball = (() => {
-  const wasmArchive = import('./wasm/wasm_archive');
+  const wasmArchive = import('../wasmlib/pkg');
   return async (input: ArrayBuffer): Promise<Archive> => {
     return (await wasmArchive).unpack_tgz(input);
   };

@@ -3,9 +3,6 @@ module.exports = {
   entry: './src/index.ts',
   mode: 'production',
   resolve: {
-    alias: {
-      osenv: require.resolve('./src/stubs/osenv.ts')
-    },
     extensions: ['.wasm', '.mjs', '.ts', '.js', '.json']
   },
   node: {
