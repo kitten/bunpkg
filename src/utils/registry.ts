@@ -1,17 +1,19 @@
 import Url from 'url-parse';
 import error from 'http-errors';
 
-import * as env from './env';
+import * as env from '../env';
 
 export const getRegistryPath = (fullUrl: string) => new Url(fullUrl, false).pathname;
 
-export const fetchRegistry = async (path: string, init?: RequestInit): Promise<Response> => {
+export const fetchRegistry = async (endpoint: string, init?: RequestInit): Promise<Response> => {
   const opts = { ...init };
   (opts as any).cf = {
     cacheEverything: true,
     cacheTtl: env.SHORT_CACHE_TTL
   };
 
+  let path = endpoint;
+  if (!path.startsWith('/')) path = `/${path}`;
   const response = await fetch(env.REGISTRY_URL + path, opts);
 
   if (response.status < 500 && response.status >= 400) {

@@ -1,10 +1,10 @@
 import { normalize as normalizePath } from 'path';
 
+import * as env from '../env';
 import { Manifest } from './metadata';
 import { getJSON, putJSON, putFile } from './files';
 import { getRegistryPath, fetchRegistry } from './registry';
 import { getContentType } from './mime';
-import * as env from './env';
 
 export interface Asset {
   path: string;
@@ -25,7 +25,7 @@ export interface Directory extends Asset {
 type Archive = Map<string, [number, Uint8Array]>;
 
 const unpackTarball = (() => {
-  const wasmArchive = import('../wasmlib/pkg');
+  const wasmArchive = import('../../wasmlib/pkg');
   return async (input: ArrayBuffer): Promise<Archive> => {
     return (await wasmArchive).unpack_tgz(input);
   };
@@ -72,7 +72,7 @@ const fetchTarball = async (manifest: Manifest): Promise<Directory> => {
   };
 
   for (const [filePath, [size, data]] of archive){
-    const path = normalizePath(filePath).split('/').slice(1);
+    const path = normalizePath(filePath).split('/').filter(Boolean).slice(1);
     const filename = path[path.length - 1];
     if (!isFileIncluded(filename) || !filename) {
       continue;

@@ -8,6 +8,8 @@ const pickString = (...args: any[]): undefined | string =>
 
 export const getAsset = (contents: Directory, path: string): File | Directory => {
   const parts = path.split('/').filter(Boolean);
+  if (parts.length === 0) return contents;
+
   const last = parts[parts.length - 1];
   let node = contents;
   for (let i = 0, l = parts.length - 1; i < l; i++) {

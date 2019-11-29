@@ -1,5 +1,5 @@
 import LRUCache from 'lru-cache';
-import * as env from './env';
+import * as env from '../env';
 
 const storage = env.NPMFILE_STORAGE;
 

@@ -12,6 +12,7 @@
     "lru-cache": "^5.1.1",
     "mime": "^2.4.4",
     "semver": "^6.3.0",
+    "tiny-request-router": "^1.1.2",
     "url-parse": "^1.4.7",
     "validate-npm-package-name": "^3.0.0"
   },

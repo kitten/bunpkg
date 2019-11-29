@@ -2,9 +2,9 @@ import validatePackageName from 'validate-npm-package-name';
 import * as semver from 'semver';
 import error from 'http-errors';
 
+import * as env from '../env';
 import { fetchRegistry } from './registry';
 import { putJSON, getJSON } from './files';
-import * as env from './env';
 
 export interface ManifestDist {
   integrity: string;
@@ -45,9 +45,9 @@ export const fetchPackument = async (packageName: string): Promise<Packument> =>
   const cached = await getJSON<Packument>(packageName);
   if (cached) return cached;
 
-  const response = await fetchRegistry(`/${packageName}`, {
+  const response = await fetchRegistry(packageName.replace('/', '%2F'), {
     headers: {
-      'content-type': 'application/json'
+      accept: 'application/json'
     }
   });
 
