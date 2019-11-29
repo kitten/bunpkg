@@ -3,6 +3,7 @@ import { Router } from 'tiny-request-router';
 import * as env from './env';
 import { RouteHandler } from './types';
 import { getNpmFile } from './handlers/getNpmFile';
+import { getPackument } from './handlers/getPackument';
 
 const router = new Router<RouteHandler>();
 
@@ -35,5 +36,8 @@ router.get('/n/:name@:selector/(.*)', getNpmFile);
 router.get('/n/:name@:selector', getNpmFile);
 router.get('/n/:name/(.*)', getNpmFile);
 router.get('/n/:name', getNpmFile);
+
+router.get('/i/@:scope/:name', getPackument);
+router.get('/i/:name', getPackument);
 
 export { router };

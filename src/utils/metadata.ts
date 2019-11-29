@@ -34,6 +34,13 @@ export interface Packument {
   versions: { [version: string]: Manifest; };
   time: { [version: string]: string; };
   'dist-tags': { [tag: string]: string; };
+  license?: string;
+  readmeFilename?: string;
+  homepage?: string;
+  author?: string | object;
+  description?: string;
+  repository?: string | object;
+  bugs?: string | object;
   /* ... */
 }
 
