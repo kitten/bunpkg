@@ -60,8 +60,9 @@ export const fetchPackument = async (packageName: string): Promise<Packument> =>
   }
 };
 
-export const fetchManifest = async (packageName: string, selector: string): Promise<Manifest> => {
+export const fetchManifest = async (packageName: string, rawSelector: string): Promise<Manifest> => {
   const packument = await fetchPackument(packageName);
+  const selector = decodeURIComponent(rawSelector);
 
   let version: string | void;
   let range: string | void;
@@ -72,8 +73,6 @@ export const fetchManifest = async (packageName: string, selector: string): Prom
   } else if (range = semver.validRange(selector, true)) {
     range = range || undefined;
     version = undefined;
-  } else if (encodeURIComponent(selector) !== selector) {
-    throw error('400 Invalid tag name');
   } else if (version = packument['dist-tags'][selector]) {
     range = undefined;
     version = version || undefined;
