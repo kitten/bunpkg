@@ -39,14 +39,17 @@ export const getNpmFile: RouteHandler = async (params, request) => {
   const contents = await getContents(manifest);
   if (isMeta) {
     const asset = getAsset(contents, rest);
-    return new Response(JSON.stringify(toMetaOutput(asset)), {
-      status: 200,
-      headers: {
-        ...env.BASE_HEADERS,
-        'cache-control': env.LONG_CACHE_CONTROL,
-        'content-type': 'application/json'
+    return new Response(
+      JSON.stringify(toMetaOutput(asset), null, 2),
+      {
+        status: 200,
+        headers: {
+          ...env.BASE_HEADERS,
+          'cache-control': env.LONG_CACHE_CONTROL,
+          'content-type': 'application/json'
+        }
       }
-    });
+    );
   }
 
   const asset = resolve(manifest, contents, rest);

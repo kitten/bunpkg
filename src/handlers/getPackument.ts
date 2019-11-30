@@ -29,7 +29,7 @@ export const getPackument: RouteHandler = async (params) => {
     bugs: packument.bugs,
   };
 
-  return new Response(JSON.stringify(slimmed), {
+  return new Response(JSON.stringify(slimmed, null, 2), {
     status: 200,
     headers: {
       ...env.BASE_HEADERS,
