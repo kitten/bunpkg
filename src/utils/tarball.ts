@@ -22,6 +22,11 @@ export interface Directory extends Asset {
   files: { [name: string]: File | Directory; };
 }
 
+export interface MetaDirectory extends Asset {
+  type: 'directory';
+  files: Array<File | Directory>;
+}
+
 type Archive = Map<string, [number, Uint8Array]>;
 
 const unpackTarball = (() => {
@@ -110,12 +115,18 @@ export const getContents = async (manifest: Manifest, skipCache = false): Promis
   return contents;
 };
 
-export const toMetaOutput = (asset: File | Directory): object => {
+export const toMetaOutput = (
+  asset: Directory | File
+): MetaDirectory | File => {
   if (asset.type === 'directory') {
-    return {
+    return ({
       ...asset,
-      files: Object.values(asset.files).map(toMetaOutput)
-    };
+      files: Object.keys(asset.files)
+        .map(key => toMetaOutput(asset.files[key]))
+        .sort(({ name: a }, { name: b }) => {
+          return a.length - b.length || a.localeCompare(b);
+        })
+    } as MetaDirectory);
   } else {
     return asset;
   }
