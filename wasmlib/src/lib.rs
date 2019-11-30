@@ -10,6 +10,8 @@ use tar::Archive;
 type ArchiveEntry = (u64, ByteBuf);
 type ArchiveMap = HashMap<String, ArchiveEntry>;
 
+const MAX_BYTE_SIZE: u64 = 1024 * 1024 * 2 - 128; /* <2MB */
+
 #[wasm_bindgen]
 pub fn unpack_tgz(input: JsValue) -> JsValue {
     let deserialized: ByteBuf = serde_wasm_bindgen::from_value(input).unwrap();
@@ -23,8 +25,14 @@ pub fn unpack_tgz(input: JsValue) -> JsValue {
             EntryType::Regular => {
                 let path = file.path().unwrap().to_mut().to_str().unwrap().into();
                 let size = header.size().unwrap();
-                let mut raw = ByteBuf::with_capacity(size as usize);
-                file.read_to_end(&mut raw).unwrap();
+                let mut raw: ByteBuf;
+                if size < MAX_BYTE_SIZE {
+                    raw = ByteBuf::with_capacity(size as usize);
+                    file.read_to_end(&mut raw).unwrap();
+                } else {
+                    raw = ByteBuf::with_capacity(0);
+                }
+
                 let entry: ArchiveEntry = (size, raw);
                 files.insert(path, entry);
             },
