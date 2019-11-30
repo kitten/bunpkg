@@ -1,4 +1,3 @@
-import validatePackageName from 'validate-npm-package-name';
 import * as semver from 'semver';
 import error from 'http-errors';
 
@@ -44,8 +43,34 @@ export interface Packument {
   /* ... */
 }
 
+const scopedPackagePattern = new RegExp('^(?:@([^/]+?)[/])?([^/]+?)$');
+
+const isValidPackageName = (packageName: string): boolean => {
+  if (
+    !packageName ||
+    /^[._]/.test(packageName) ||
+    packageName.trim() !== packageName ||
+    packageName === 'node_modules' ||
+    packageName === 'favicon.ico'
+  ) {
+    return false;
+  } else if (encodeURIComponent(packageName) !== packageName) {
+    const scopeMatch = packageName.match(scopedPackagePattern);
+    if (scopeMatch) {
+      const [, user, pkg] = scopeMatch;
+      if (encodeURIComponent(user) === user && encodeURIComponent(pkg) === pkg) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  return true;
+};
+
 export const fetchPackument = async (packageName: string): Promise<Packument> => {
-  if (!validatePackageName(packageName).validForNewPackages) {
+  if (!isValidPackageName(packageName)) {
     throw error(400, 'Invalid package name');
   }
 

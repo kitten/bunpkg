@@ -13,8 +13,7 @@
     "mime": "^2.4.4",
     "semver": "^6.3.0",
     "tiny-request-router": "^1.1.2",
-    "url-parse": "^1.4.7",
-    "validate-npm-package-name": "^3.0.0"
+    "url-parse": "^1.4.7"
   },
   "devDependencies": {
     "@babel/core": "^7.7.4",
