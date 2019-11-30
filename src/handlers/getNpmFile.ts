@@ -26,7 +26,7 @@ export const getNpmFile: RouteHandler = async (params, request) => {
       }
     });
   } else if (rest === 'package.json') {
-    return new Response(JSON.stringify(manifest), {
+    return new Response(JSON.stringify(manifest, null, 2), {
       status: 200,
       headers: {
         ...env.BASE_HEADERS,
